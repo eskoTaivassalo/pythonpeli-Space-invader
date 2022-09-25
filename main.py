@@ -1,4 +1,4 @@
-import pygame 
+import pygame      # videon https://www.youtube.com/watch?v=FfWpgLFMI7w mukainen peli
 import random
 import math
 from pygame import mixer
@@ -33,14 +33,31 @@ enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
-num_of_enemies = 6
+num_of_enemies = 4
+
 
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('ghost.png'))
     enemyX.append(random.randint(0, 735))
     enemyY.append(random.randint(50, 150))
-    enemyX_change.append(0.3)
+    enemyX_change.append(-0.3)
     enemyY_change.append(40)
+
+enemy2Img = []
+enemy2X = []
+enemy2Y = []
+enemy2X_change = []
+enemy2Y_change = []
+num_of_enemies2 = 3
+osumat = 5
+for i in range(num_of_enemies2):
+    enemy2Img.append(pygame.image.load('enemy.png'))
+    enemy2X.append(random.randint(0, 735))
+    enemy2Y.append(random.randint(50, 150))
+    enemy2X_change.append(0.1)
+    enemy2Y_change.append(20)
+
+
 
 # bullet
 
@@ -56,12 +73,12 @@ bullet_state = "ready"
 
 # superbullet
 
-superBulletImg = pygame.image.load('bullet.png')
+superBulletImg = pygame.image.load('nuclear-bomb.png')
 superBulletX = 0
 superBulletY = 480
 superBulletX_change = 0
 superBulletY_change = 2
-superBullet_state = False
+superBullet_state = "ready"
 
 
 
@@ -94,6 +111,8 @@ def player(x, y):
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
 
+def enemy2(x, y, i):
+    screen.blit(enemy2Img[i], (x, y))
 
 def fire_bullet(x, y):
     global bullet_state
@@ -103,7 +122,7 @@ def fire_bullet(x, y):
 def fire_super_bullet(x,y):
     global superBullet_state
     superBullet_state = "fire"
-    screen.blit(superBulletImg, (x + 25, y + 10))
+    screen.blit(superBulletImg, (x, y + 10))
 
 
 
@@ -113,8 +132,9 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):  # tulee kaavasta D= neliöj.
         return True
     else:
         return False
-def isSuperCollision(enemyX, enemyY, superBulletX, superBulletY):  # tulee kaavasta D= neliöj. (x2-x1) toiseen + (y2-y1) toiseen
-    distance = math.sqrt((math.pow(enemyX - superBulletX, 2)) + (math.pow(enemyY - superBulletY, 2)))
+def isSuperCollision(enemy2X, enemy2Y, superBulletX, superBulletY):  # tulee kaavasta D= neliöj. (x2-x1) toiseen + (y2-y1) toiseen
+    distance = math.sqrt((math.pow(enemy2X - superBulletX, 2)) + (math.pow(enemy2Y - superBulletY, 2)))
+
 
     if distance < 27:
         return True
@@ -151,7 +171,7 @@ while running:
             if event.key == pygame.K_DOWN:
 
                 superBullet_state = "ready"
-                superBullet_sound = mixer.Sound('superase.wav')
+                superBullet_sound = mixer.Sound('laser.wav')
                 superBullet_sound.play()
                 superBulletX = playerX
                 fire_super_bullet(playerX, playerY)
@@ -173,13 +193,22 @@ while running:
     for i in range(num_of_enemies):
         # Game over
         if enemyY[i] > 440:
-
             for j in range(num_of_enemies):
                 enemyY[j] = 2000
-            game_over_text()
+                game_over_text()
+
+                break
+    # Enemy2 movement
+    for i in range(num_of_enemies2):
+        # Game over
+        if enemy2Y[i] > 440:
+            for j in range(num_of_enemies2):
+                enemy2Y[j] = 2000
+                game_over_text()
+
+                break
 
 
-            break
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
@@ -188,6 +217,14 @@ while running:
         elif enemyX[i] >= 736:
             enemyX_change[i] = -0.5
             enemyY[i] += enemyY_change[i]
+
+        enemy2X[i] += enemy2X_change[i]
+        if enemy2X[i] <= 0:
+            enemy2X_change[i] = 0.5
+            enemy2Y[i] += enemy2Y_change[i]
+        elif enemy2X[i] >= 736:
+            enemy2X_change[i] = -0.5
+            enemy2Y[i] += enemy2Y_change[i]
 
         # collision
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
@@ -200,8 +237,9 @@ while running:
             print(score_value)
             enemyX[i] = random.randint(0, 735)
             enemyY[i] = random.randint(50, 150)
+        enemy(enemyX[i], enemyY[i], i)
 
-        superCollision = isSuperCollision(enemyX[i], enemyY[i], superBulletX, superBulletY)
+        superCollision = isSuperCollision(enemy2X[i], enemy2Y[i], superBulletX, superBulletY)
         if superCollision:
             superExplosion_sound = mixer.Sound('superosuma.wav')
             superExplosion_sound.play()
@@ -209,12 +247,10 @@ while running:
             superBullet_state = "ready"
             score_value += 10
             print(score_value)
-            enemyX[i] = random.randint(0, 735)
-            enemyY[i] = random.randint(50, 150)
+            enemy2X[i] = random.randint(0, 735)
+            enemy2Y[i] = random.randint(50, 150)
 
-
-
-        enemy(enemyX[i], enemyY[i], i)
+        enemy2(enemy2X[i], enemy2Y[i], i)
 
     # bullet movement
 
